@@ -1,6 +1,6 @@
 import random
 
-class Board:
+class Game:
     def __init__(self, rows=3, cols=3):
         self.rows = rows
         self.cols = cols
@@ -67,7 +67,7 @@ class Board:
         result = []
         for row, col in cells:
             if self.is_valid(row, col)==valid:
-                result.append((row, col))
+                result.append([row, col])
         return result
     
     def get_valid_corners(self):
@@ -75,6 +75,9 @@ class Board:
     
     def get_invalid_corners(self):
         return self.get_cells(self.get_corners(), False)
+    
+    def get_invalid_edges(self):
+        return self.get_cells(self.get_edges(), False)
     
     def get_random_corner(self):
         valid_corners = self.get_valid_corners()
@@ -134,20 +137,61 @@ class Board:
         row, col = move
         self.board[row][col] = symbol
         return f"{symbol} placed at [{row}, {col}]"
+    
+    def are_cells_adjacent(self, cell1, cell2):
+        r1, c1 = cell1
+        r2, c2 = cell2
+        return abs(r1-r2) <= 1 and abs(c1-c2) <= 1
+    
+    def are_opponents_cells_adjacent(self, cell1, cell2, current_player_symbol):
+        r1, c1 = cell1
+        r2, c2 = cell2
+        return self.are_cells_adjacent(cell1, cell2) and self.board[r1][c1] == self.board[r2][c2] != current_player_symbol
+
+    def opposite_corner(self, cell1, cell2):
+        for corner in self.get_valid_corners():
+            if not self.are_cells_adjacent(cell1, corner) and not self.are_cells_adjacent(cell2, corner):
+                return corner
+            
+    def adjacent_corners(self, cell1, cell2):
+        opposite_corner = self.opposite_corner(cell1,cell2)
+        return [corner for corner in self.get_valid_corners() if corner != opposite_corner] 
+
+    def random_adjacent_corner(self, cell1, cell2):
+        adjacent_corners = self.adjacent_corners(cell1, cell2)
+        return random.choice(adjacent_corners) if len(adjacent_corners) > 0 else None
 
     def best_move(self, symbol):
         if self.is_valid(1, 1):
             return [1, 1]
         
         for move in self.get_all_valid_moves():
-            print(f"valid move: {symbol}", move)
             if self.is_winning_move(move, symbol):
                 return move
         
-        if len(self.get_valid_corners()) == 2 \
-            and len(self.get_all_valid_moves()) == 6:
-                [r1,c1], [r2, c2] = self.get_invalid_corners()
-                print(f"invalid_corners {r1} {c1},  {r2} {c2}")
+        #at this stage the next move decides the game
+        if len(self.moves_history) == 3:
+            #this counteracts two-edges-strategy where the opponent makes two edges and
+            # if the current player doesn't chose correctly, the opponent moves in the adjacent corner to both edges to get double chances
+            invalid_edges = self.get_invalid_edges()
+            if len(invalid_edges) == 2:
+                cell1, cell2 = invalid_edges
+                if self.are_opponents_cells_adjacent(cell1, cell2, symbol):
+                    return self.random_adjacent_corner(cell1, cell2)
+            elif len(invalid_edges) == 3:
+                cell1, cell2, cell3 = invalid_edges
+                if self.are_opponents_cells_adjacent(cell1, cell2, symbol):
+                    return self.random_adjacent_corner(cell1, cell2)
+                if self.are_opponents_cells_adjacent(cell1, cell3, symbol):
+                    return self.random_adjacent_corner(cell1, cell3)
+                if self.are_opponents_cells_adjacent(cell2, cell3, symbol):
+                    return self.random_adjacent_corner(cell2, cell3)
+                
+            #this counteracts two-corners-strategy where the opponent marks two opposing corners in diagonal and
+            # if the current player doesn't chose correctly, the opponent moves in a third corner to get double chances
+            invalid_corners = self.get_invalid_corners()
+            if len(invalid_corners) == 2 :
+                [r1,c1], [r2, c2] = invalid_corners
                 if self.board[r1][c1] == self.board[r2][c2] != symbol:
                     return random.choice(self.get_valid_edges())
         

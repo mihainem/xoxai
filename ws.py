@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import json
 from events import try_handle_event
-from board import Board
+from board import Game
 from json_checker import Checker, Or
 
 expected_schema = {'event-name': str, 'event-data': Or(str, dict, None)}
@@ -30,7 +30,7 @@ async def handle_message(websocket, message):
 async def server(websocket, path):
     if websocket not in connected:
         connected.add(websocket)
-        boards[websocket.id] = Board()
+        boards[websocket.id] = Game()
     try:
         async for message in websocket:
             print(f"Received on server: {str(message)}")
