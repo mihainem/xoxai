@@ -1,10 +1,10 @@
-from game import Game
 import unittest
+from src import game
 
 class TestGame(unittest.TestCase):
 
     def setUp(self):
-        self.game = Game()
+        self.game = game.Game()
 
 
     def test_board(self):

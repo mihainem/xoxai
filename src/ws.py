@@ -2,14 +2,14 @@ import asyncio
 import websockets
 import json
 from events import try_handle_event
-from board import Game
+from game import Game
 from json_checker import Checker, Or
 
 expected_schema = {'event-name': str, 'event-data': Or(str, dict, None)}
 checker = Checker(expected_schema)
 
 connected = set()
-boards = {}
+games = {}
 
 
 async def handle_message(websocket, message):
@@ -20,8 +20,8 @@ async def handle_message(websocket, message):
             if con != websocket:
                 await con.send(json.dumps(message))
     else:
-        board = boards[websocket.id]
-        result = try_handle_event(message, board)
+        game = games[websocket.id]
+        result = try_handle_event(message, game)
 
         print(f"Result: {str(result)}")
         await websocket.send(json.dumps(result))
@@ -30,20 +30,20 @@ async def handle_message(websocket, message):
 async def server(websocket, path):
     if websocket not in connected:
         connected.add(websocket)
-        boards[websocket.id] = Game()
+        games[websocket.id] = Game()
     try:
         async for message in websocket:
             print(f"Received on server: {str(message)}")
             await handle_message(websocket, message)
-           
+
     except websockets.exceptions.ConnectionClosed as e:
         print(f"Connection closed {e}")
     finally:
         connected.remove(websocket)
 
 
-start_server = websockets.serve(server, "localhost", 5000)
+print("Server listening on port 5000")
+start_server = websockets.serve(server, "", 5000)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
-
 

@@ -1,5 +1,5 @@
 import random
-from board import Game
+from game import Game
 
 class AI:
     def __init__(self):
