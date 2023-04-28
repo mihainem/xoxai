@@ -1,8 +1,8 @@
 import asyncio
 import websockets
 import json
-from events import try_handle_event
-from game import Game
+import events
+import game
 from json_checker import Checker, Or
 
 expected_schema = {'event-name': str, 'event-data': Or(str, dict, None)}
@@ -21,7 +21,7 @@ async def handle_message(websocket, message):
                 await con.send(json.dumps(message))
     else:
         game = games[websocket.id]
-        result = try_handle_event(message, game)
+        result = events.try_handle_event(message, game)
 
         print(f"Result: {str(result)}")
         await websocket.send(json.dumps(result))
@@ -30,7 +30,7 @@ async def handle_message(websocket, message):
 async def server(websocket, path):
     if websocket not in connected:
         connected.add(websocket)
-        games[websocket.id] = Game()
+        games[websocket.id] = game.Game()
     try:
         async for message in websocket:
             print(f"Received on server: {str(message)}")
@@ -42,8 +42,8 @@ async def server(websocket, path):
         connected.remove(websocket)
 
 
-print("Server listening on port 5000")
-start_server = websockets.serve(server, "", 5000)
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_forever()
+#print("Server listening on port 5000")
+#start_server = websockets.serve(server, "", 5000)
+#asyncio.get_event_loop().run_until_complete(start_server)
+#asyncio.get_event_loop().run_forever()
 

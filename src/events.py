@@ -1,8 +1,7 @@
-from ai import AI
+import ai
 import json
-from localizations import get_language_dict
-
-ai = AI()
+import localizations
+ai = ai.AI()
 events = {}
 
 def set_player_move(game, data):
@@ -52,7 +51,7 @@ events["get-ai-hint"] = lambda game,data: get_ai_hint(game, data)
 events["get-hint"] = lambda game,data: get_hint(game, data)
 events["undo-move"] = lambda game,data: undo_move(game, data)
 events["reset-board"] = lambda game, data: reset_board(game)
-events["get-language"] = lambda game, data: get_language_dict(data)
+events["get-language"] = lambda game, data: localizations.get_language_dict(data)
 events["dispatch-event"] = lambda game, data: dispatch_event(data)
 
 def try_handle_event(message, game):

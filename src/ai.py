@@ -1,5 +1,4 @@
 import random
-from game import Game
 
 class AI:
     def __init__(self):
