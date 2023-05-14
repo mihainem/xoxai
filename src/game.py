@@ -5,34 +5,39 @@ class Game:
         self.rows = rows
         self.cols = cols
         self.board = [['-' for j in range(cols)] for i in range(rows)] #[['-', '-', '-'], ['-', '-', '-'], ['-', '-', '-']]
-  
+        self.turn = "X"
         self.player = "X"
         self.enemy = "O"
         self.history = []
         self.moves_history = []
+        self.winner = None
 
     def reset(self):
         self.board = [['-' for j in range(self.cols)] for i in range(self.rows)]
         self.moves_history=[]
+        self.winner = None
         
         
     def check_play_ended(self):
         if self.is_won("X"):
-            self.history.append("X")
-            return "X won!"
+            self.winner = "X"
         elif self.is_won("O"):
-            self.history.append("O")
-            return "O won!"
+            self.winner = "O"
         elif self.is_board_full():
-            self.history.append('T')
-            return "It's a tie!"
+            self.winner = "T"
+        else:
+            return None
+        
+        self.history.append(self.winner)
+
+        return {"winner": self.winner}
     
     def undo_move(self):
         move = None
         if len(self.moves_history) > 0:
             row, col = move = self.moves_history.pop()
             self.board[row][col] = '-'
-        
+
         return move
    
 
@@ -136,6 +141,7 @@ class Game:
         self.moves_history.append(move)
         row, col = move
         self.board[row][col] = symbol
+        self.turn = "X" if symbol == "O" else "O"
         return f"{symbol} placed at [{row}, {col}]"
     
     def are_cells_adjacent(self, cell1, cell2):
@@ -215,6 +221,3 @@ class Game:
 
     def get_hint_move(self):
         return self.next_best_move(self.player, self.enemy)
-
-    def set_player_move(self, move):
-        self.make_move(move, self.player)

@@ -3,6 +3,7 @@ import websockets
 import json
 import events
 import game
+import constants as c
 from json_checker import Checker, Or
 
 expected_schema = {'event-name': str, 'event-data': Or(str, dict, None)}
@@ -15,22 +16,26 @@ games = {}
 async def handle_message(websocket, message):
     message = checker.validate(json.loads(message))
     
-    if message["event-name"] == "dispatch-event":
+    if message[c.EVENT_NAME] == c.DISPATCH_EVENT:
+        message[c.EVENT_NAME] = message[c.EVENT_DATA]
         for con in connected:
             if con != websocket:
                 await con.send(json.dumps(message))
     else:
-        game = games[websocket.id]
-        result = events.try_handle_event(message, game)
+        name = message[c.EVENT_NAME]
+        if message[c.EVENT_NAME] in [c.INIT_HOST, c.INIT_JOIN]:
+            await events.events[name](websocket, message )   
+        else: 
+            result = events.try_handle_event(message, websocket)
 
-        print(f"Result: {str(result)}")
-        await websocket.send(json.dumps(result))
+            if result is not None:
+                print(f"Result: {str(result)}")
+                await websocket.send(json.dumps(result))
 
 
 async def server(websocket, path):
     if websocket not in connected:
         connected.add(websocket)
-        games[websocket.id] = game.Game()
     try:
         async for message in websocket:
             print(f"Received on server: {str(message)}")
@@ -40,10 +45,3 @@ async def server(websocket, path):
         print(f"Connection closed {e}")
     finally:
         connected.remove(websocket)
-
-
-#print("Server listening on port 5000")
-#start_server = websockets.serve(server, "", 5000)
-#asyncio.get_event_loop().run_until_complete(start_server)
-#asyncio.get_event_loop().run_forever()
-

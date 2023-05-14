@@ -2,13 +2,14 @@
 import json
 import websockets
 import asyncio
+import constants as c
 
 SET_LANGUAGE = "update-language"
 CLOSE_WEBSOCKET = "close-websocket"
 
 
 def event_to_send(event_name):
-    return {"event-name": "dispatch-event","event-data": event_name}
+    return {c.EVENT_NAME: c.DISPATCH_EVENT, c.EVENT_DATA: event_name}
 
 async def handler():
     #websocket = next(iter(connected))
@@ -19,7 +20,3 @@ async def handler():
 
 
 asyncio.get_event_loop().run_until_complete(handler())
-
-
-
-# make flag icons for each of the following codes: en, ro, fr, de, ja
