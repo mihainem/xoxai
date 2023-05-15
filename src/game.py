@@ -198,7 +198,7 @@ class Game:
             invalid_corners = self.get_invalid_corners()
             if len(invalid_corners) == 2 :
                 [r1,c1], [r2, c2] = invalid_corners
-                if self.board[r1][c1] == self.board[r2][c2] != symbol:
+                if self.board[r1][c1] == self.board[r2][c2] != symbol and r1 != r2 and c1 != c2: # check if the corners are in diagonal
                     return random.choice(self.get_valid_edges())
         
         print(f"no best move found for {symbol}")
@@ -209,7 +209,7 @@ class Game:
             row, col = move
             if self.is_valid(row, col) and not self.is_winning_move(move, symbol):
                 return move
-        for move in self.get_valid_corners(): #.get_cells(self.get_corners()):
+        for move in self.get_valid_corners():
             row, col = move
             if not self.is_winning_move(move, symbol):
                 return move
